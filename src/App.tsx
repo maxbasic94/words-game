@@ -50,8 +50,6 @@ export const App: React.FC = () => {
   useEffect(() => {
     const savedProgress = loadProgress();
     if (savedProgress) {
-      console.log(savedProgress);
-
       setLevelIndex(savedProgress.levelIndex);
       setFoundWords(savedProgress.foundWords);
     }
@@ -87,10 +85,6 @@ export const App: React.FC = () => {
     setInit(false);
   }, [levelIndex, foundWords, init]);
 
-  // const save = () => {
-  //   saveProgress({ levelIndex, foundWords });
-  // };
-
   // useEffect(() => {
   //   const handleBeforeUnload = () => {
   //     saveProgress({ levelIndex, foundWords });
@@ -114,7 +108,6 @@ export const App: React.FC = () => {
 
   const goToNextLevel = () => {
     setIsVictory(false);
-    // setCurrentWord('');
     setLevelIndex((prev) => prev + 1);
     setFoundWords([]);
   };
