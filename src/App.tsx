@@ -8,31 +8,99 @@ import { LetterCircle } from './components/LetterCircle';
 import { VictoryScreen } from './components/VictoryScreen';
 import { levels } from './levels/levels';
 import { getMinimumLetters } from './utils/letters';
+import { InactiveTabModal } from './components/InactiveTabModal';
 
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100%;
 `;
 
 const LevelText = styled.h1`
   margin: 20px 0;
 `;
 
+const LOCAL_STORAGE_KEY = 'wordGameProgress';
+const LAST_ACTIVE_KEY = 'lastActiveTab';
+
+type GameProgressType = {
+  levelIndex: number;
+  foundWords: string[];
+};
+
+const saveProgress = (progress: GameProgressType) => {
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(progress));
+};
+
+const loadProgress = (): GameProgressType | null => {
+  const savedProgress = localStorage.getItem(LOCAL_STORAGE_KEY);
+  return savedProgress ? JSON.parse(savedProgress) : null;
+};
+
 export const App: React.FC = () => {
+  const [init, setInit] = useState<boolean>(true);
   const [levelIndex, setLevelIndex] = useState<number>(0);
-  // const [currentWord, setCurrentWord] = useState<string>('');
   const [isVictory, setIsVictory] = useState<boolean>(false);
   const [letters, setLetters] = useState<string[]>([]);
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [selectedLetters, setSelectedLetters] = useState<string[]>([]);
+  const [isInactive, setIsInactive] = useState<boolean>(false);
+  console.log(3, foundWords);
+
+  useEffect(() => {
+    const savedProgress = loadProgress();
+    if (savedProgress) {
+      console.log(savedProgress);
+
+      setLevelIndex(savedProgress.levelIndex);
+      setFoundWords(savedProgress.foundWords);
+    }
+
+    const currentTabId = Date.now().toString();
+    sessionStorage.setItem(LAST_ACTIVE_KEY, currentTabId);
+    localStorage.setItem(LAST_ACTIVE_KEY, currentTabId);
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (
+        event.key === LAST_ACTIVE_KEY &&
+        event.newValue !== sessionStorage.getItem(LAST_ACTIVE_KEY)
+      ) {
+        setIsInactive(true);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     const currentLevel = levels[levelIndex % levels.length];
     setLetters(getMinimumLetters(currentLevel.words));
-    setFoundWords([]);
+    // setFoundWords([]);
   }, [levelIndex]);
+
+  useEffect(() => {
+    !init && saveProgress({ levelIndex, foundWords });
+    setInit(false);
+  }, [levelIndex, foundWords, init]);
+
+  // const save = () => {
+  //   saveProgress({ levelIndex, foundWords });
+  // };
+
+  // useEffect(() => {
+  //   const handleBeforeUnload = () => {
+  //     saveProgress({ levelIndex, foundWords });
+  //   };
+
+  //   window.addEventListener('beforeunload', handleBeforeUnload);
+  //   return () => {
+  //     window.removeEventListener('beforeunload', handleBeforeUnload);
+  //   };
+  // }, [levelIndex, foundWords]);
 
   const handleWordSubmit = (word: string) => {
     const currentLevel = levels[levelIndex % levels.length];
@@ -48,6 +116,19 @@ export const App: React.FC = () => {
     setIsVictory(false);
     // setCurrentWord('');
     setLevelIndex((prev) => prev + 1);
+    setFoundWords([]);
+  };
+
+  const handleRefresh = () => {
+    const savedProgress = loadProgress();
+    if (savedProgress) {
+      setLevelIndex(savedProgress.levelIndex);
+      setFoundWords(savedProgress.foundWords);
+    }
+    const currentTabId = Date.now().toString();
+    sessionStorage.setItem(LAST_ACTIVE_KEY, currentTabId);
+    localStorage.setItem(LAST_ACTIVE_KEY, currentTabId);
+    setIsInactive(false);
   };
 
   return (
@@ -69,6 +150,7 @@ export const App: React.FC = () => {
             />
           </>
         )}
+        {isInactive && <InactiveTabModal onRefresh={handleRefresh} />}
       </AppContainer>
     </>
   );
