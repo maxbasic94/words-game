@@ -85,17 +85,6 @@ export const App: React.FC = () => {
     setInit(false);
   }, [levelIndex, foundWords, init]);
 
-  // useEffect(() => {
-  //   const handleBeforeUnload = () => {
-  //     saveProgress({ levelIndex, foundWords });
-  //   };
-
-  //   window.addEventListener('beforeunload', handleBeforeUnload);
-  //   return () => {
-  //     window.removeEventListener('beforeunload', handleBeforeUnload);
-  //   };
-  // }, [levelIndex, foundWords]);
-
   const handleWordSubmit = (word: string) => {
     const currentLevel = levels[levelIndex % levels.length];
     if (currentLevel.words.includes(word) && !foundWords.includes(word)) {
