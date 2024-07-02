@@ -32,9 +32,9 @@ export const WordGrid: React.FC<WordGridProps> = ({ words }) => {
   return (
     <GridContainer>
       {words.map((word, index) => (
-        <WordBox>
-          {word.split('').map((letter) => (
-            <LetterBox key={index}>{letter}</LetterBox>
+        <WordBox key={index + word}>
+          {word.split('').map((letter, index) => (
+            <LetterBox key={letter + index}>{letter}</LetterBox>
           ))}
         </WordBox>
       ))}
